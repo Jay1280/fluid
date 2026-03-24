@@ -1,8 +1,11 @@
 import { Request, Response } from "express";
 import StellarSdk from "@stellar/stellar-sdk";
 import { Config } from "../config";
-
 import { FeeBumpSchema, FeeBumpRequest } from "../schemas/feeBump";
+import { ApiKeyConfig } from "../middleware/apiKeys";
+import { syncTenantFromApiKey } from "../models/tenantStore";
+import { recordSponsoredTransaction } from "../models/transactionLedger";
+import { checkTenantDailyQuota } from "../services/quota";
 
 interface FeeBumpResponse {
   xdr: string;
@@ -61,6 +64,27 @@ export function feeBumpHandler(
     }
 
     const feeAmount = Math.floor(config.baseFee * config.feeMultiplier);
+    const apiKeyConfig = res.locals.apiKey as ApiKeyConfig | undefined;
+
+    if (!apiKeyConfig) {
+      res.status(500).json({
+        error: "Missing tenant context for fee sponsorship",
+      });
+      return;
+    }
+
+    const tenant = syncTenantFromApiKey(apiKeyConfig);
+    const quotaCheck = checkTenantDailyQuota(tenant, feeAmount);
+
+    if (!quotaCheck.allowed) {
+      res.status(403).json({
+        error: "Daily fee sponsorship quota exceeded",
+        currentSpendStroops: quotaCheck.currentSpendStroops,
+        attemptedFeeStroops: feeAmount,
+        dailyQuotaStroops: quotaCheck.dailyQuotaStroops,
+      });
+      return;
+    }
 
     const feePayerKeypair = StellarSdk.Keypair.fromSecret(
       config.feePayerSecret
@@ -74,6 +98,7 @@ export function feeBumpHandler(
     );
 
     feeBumpTx.sign(feePayerKeypair);
+    recordSponsoredTransaction(tenant.id, feeAmount);
 
     const feeBumpXdr = feeBumpTx.toXDR();
 
