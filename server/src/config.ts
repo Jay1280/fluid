@@ -1,3 +1,5 @@
+import StellarSdk from "@stellar/stellar-sdk";
+
 export interface Config {
   feePayerSecret: string;
   feePayerPublicKey: string;
@@ -5,6 +7,8 @@ export interface Config {
   feeMultiplier: number;
   networkPassphrase: string;
   horizonUrl?: string;
+  rateLimitWindowMs: number;
+  rateLimitMax: number;
 }
 
 export function loadConfig(): Config {
@@ -13,7 +17,6 @@ export function loadConfig(): Config {
     throw new Error("FLUID_FEE_PAYER_SECRET environment variable is required");
   }
 
-  const StellarSdk = require("@stellar/stellar-sdk");
   const feePayerKeypair = StellarSdk.Keypair.fromSecret(feePayerSecret);
   const feePayerPublicKey = feePayerKeypair.publicKey();
 
@@ -24,6 +27,12 @@ export function loadConfig(): Config {
     "Test SDF Network ; September 2015";
   const horizonUrl = process.env.STELLAR_HORIZON_URL;
 
+  const rateLimitWindowMs = parseInt(
+    process.env.FLUID_RATE_LIMIT_WINDOW_MS || "60000",
+    10
+  );
+  const rateLimitMax = parseInt(process.env.FLUID_RATE_LIMIT_MAX || "5", 10);
+
   return {
     feePayerSecret,
     feePayerPublicKey,
@@ -31,5 +40,7 @@ export function loadConfig(): Config {
     feeMultiplier,
     networkPassphrase,
     horizonUrl,
+    rateLimitWindowMs,
+    rateLimitMax,
   };
 }
