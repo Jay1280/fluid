@@ -6,12 +6,20 @@
   "browser": "dist/index.js",
   "types": "dist/index.d.ts",
   "scripts": {
+    "build": "tsc && typedoc",
+    "start": "node dist/index.js",
+    "dev": "ts-node src/index.ts",
+    "docs": "typedoc",
+    "test": "vitest run"
     "build": "tsc",
     "build:worker": "tsc src/workers/signingWorker.ts --outDir dist --target ES2020 --module ESNext --lib ES2020,WebWorker,DOM",
     "start": "node dist/index.js",
     "dev": "ts-node src/index.ts",
     "demo": "python -m http.server 8080",
     "test:performance": "open demo.html"
+    "demo:wait-confirmation": "ts-node src/demo/waitForConfirmation.ts",
+    "demo:wait-confirmation-only": "ts-node src/demo/waitForConfirmationOnly.ts",
+    "test:compat": "ts-node test/stellarCompatibility.test.ts"
   },
   "keywords": [
     "stellar",
@@ -28,8 +36,15 @@
     "@stellar/stellar-sdk": "^11.3.0",
     "dotenv": "^16.3.1"
   },
+  "peerDependencies": {
+    "react": ">=18"
+  },
   "devDependencies": {
     "@types/node": "^20.10.0",
+    "msw": "^2.12.14",
+    "@types/react": "^18.3.18",
+    "stellar-sdk-v10": "npm:stellar-sdk@10.4.1",
+    "stellar-sdk-v11": "npm:@stellar/stellar-sdk@11.3.0",
     "ts-node": "^10.9.2",
     "typescript": "^5.3.3"
   },
@@ -48,5 +63,8 @@
       "import": "./dist/workers/signingWorker.js",
       "types": "./dist/workers/signingWorker.d.ts"
     }
+    "typedoc": "^0.28.18",
+    "typescript": "^5.3.3",
+    "vitest": "^4.1.2"
   }
 }
