@@ -20,6 +20,7 @@ import {
   revokeApiKeyHandler,
 } from "./handlers/adminApiKeys";
 import { globalErrorHandler, notFoundHandler } from "./middleware/errorHandler";
+import { createCheckoutSessionHandler, stripeWebhookHandler } from "./handlers/stripe";
 import { apiKeyRateLimit } from "./middleware/rateLimit";
 import { AlertService } from "./services/alertService";
 import { initializeBalanceMonitor } from "./workers/balanceMonitor";
@@ -192,6 +193,11 @@ app.get("/admin/api-keys", listApiKeysHandler);
 app.post("/admin/api-keys", upsertApiKeyHandler);
 app.delete("/admin/api-keys/:key", revokeApiKeyHandler);
 
+// Stripe billing
+// Webhook must use raw body — register before express.json() parses it
+app.post("/stripe/webhook", express.raw({ type: "application/json" }), stripeWebhookHandler);
+app.post("/create-checkout-session", createCheckoutSessionHandler);
+
 app.use(notFoundHandler);
 app.use(globalErrorHandler);
 
@@ -229,6 +235,8 @@ if (
 } else {
   console.log(
     "Low balance alerting disabled - missing Horizon URL, threshold, or alert transport",
+  );
+}
 
 app.listen(PORT, () => {
   logger.info(

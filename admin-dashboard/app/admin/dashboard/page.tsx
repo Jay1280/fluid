@@ -3,6 +3,7 @@ import Link from "next/link";
 import { SignersTable, TransactionsTable } from "@/components/dashboard/ResponsiveTables";
 import { getDashboardPageData } from "@/lib/dashboard-data";
 import { StatCard } from "@/components/dashboard/StatCard";
+import { BillingTopUp } from "@/components/dashboard/BillingTopUp";
 import { Coins, CheckCircle, Wallet, Zap } from "lucide-react";
 
 export default async function AdminDashboard() {
@@ -80,6 +81,10 @@ export default async function AdminDashboard() {
           </div>
           <TransactionsTable transactions={transactions} />
           <SignersTable signers={signers} />
+        </section>
+
+        <section className="mt-6">
+          <BillingTopUp tenantId={session?.user?.email ?? "default"} />
         </section>
       </main>
     </div>
