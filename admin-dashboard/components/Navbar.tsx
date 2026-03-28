@@ -53,6 +53,18 @@ export function Navbar() {
                     >
                         Partners
                     </Link>
+                    <Link
+                        href="/roadmap"
+                        className="hidden text-sm font-medium text-muted-foreground transition-colors hover:text-foreground sm:inline-block"
+                    >
+                        Roadmap
+                    </Link>
+                    <Link
+                        href="/changelog"
+                        className="hidden text-sm font-medium text-muted-foreground transition-colors hover:text-foreground sm:inline-block"
+                    >
+                        Changelog
+                    </Link>
                     <ThemeToggle />
                 </nav>
             </div>
