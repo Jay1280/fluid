@@ -136,6 +136,13 @@ export class TwilioNotifier implements TwilioNotifierLike {
         return false;
       }
 
+      if (!this.fromNumber || !this.toNumber) {
+        logger.error(
+          "[TwilioNotifier] Phone numbers not configured, cannot send SMS",
+        );
+        return false;
+      }
+
       const result = await this.client.messages.create({
         from: this.fromNumber,
         to: this.toNumber,
