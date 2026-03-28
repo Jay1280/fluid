@@ -1,14 +1,16 @@
 import { afterEach, beforeEach, describe, expect, it, vi } from "vitest";
-import { TwilioNotifier } from "./twilioNotifier";
+import { TwilioNotifier, createTwilioNotifier } from "./twilioNotifier";
 import * as redisModule from "../utils/redis";
+
+// Track the mock Twilio client
+let mockTwilioCreate = vi.fn();
 
 // Mock Twilio
 vi.mock("twilio", () => {
-  const mockCreate = vi.fn();
   return {
     default: vi.fn(() => ({
       messages: {
-        create: mockCreate,
+        create: mockTwilioCreate,
       },
     })),
     __esModule: true,
@@ -138,14 +140,9 @@ describe("TwilioNotifier", () => {
 
     it("sends SMS when balance is at or below critical threshold", async () => {
       // Mock Twilio client
-      const mockTwilioCreate = vi.fn().mockResolvedValue({
+      mockTwilioCreate.mockResolvedValue({
         sid: "SMxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxx",
         status: "queued",
-      });
-      vi.mocked(require("twilio")).mockReturnValue({
-        messages: {
-          create: mockTwilioCreate,
-        },
       });
 
       const notifier = new TwilioNotifier({
@@ -179,14 +176,9 @@ describe("TwilioNotifier", () => {
         .mockResolvedValueOnce(14400 as never)
         .mockResolvedValueOnce(14000 as never);
 
-      const mockTwilioCreate = vi.fn().mockResolvedValue({
+      mockTwilioCreate.mockResolvedValue({
         sid: "SMxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxx",
         status: "queued",
-      });
-      vi.mocked(require("twilio")).mockReturnValue({
-        messages: {
-          create: mockTwilioCreate,
-        },
       });
 
       const notifier = new TwilioNotifier({
@@ -216,16 +208,6 @@ describe("TwilioNotifier", () => {
     });
 
     it("logs SMS message in test mode without actually sending", async () => {
-      const consoleSpy = vi.spyOn(console, "log");
-
-      // Mock logger to capture output
-      const mockLogger = {
-        info: vi.fn(),
-        error: vi.fn(),
-        debug: vi.fn(),
-        warn: vi.fn(),
-      };
-
       const notifier = new TwilioNotifier({
         accountSid: "ACxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxx",
         authToken: "auth_token_here",
@@ -242,7 +224,7 @@ describe("TwilioNotifier", () => {
 
       expect(result).toBe(true);
       // In test mode, SMS should not actually be sent via Twilio
-      expect(vi.mocked(require("twilio"))().messages.create).not.toHaveBeenCalled();
+      expect(mockTwilioCreate).not.toHaveBeenCalled();
     });
 
     it("handles Redis failure gracefully by allowing SMS", async () => {
@@ -250,14 +232,9 @@ describe("TwilioNotifier", () => {
         new Error("Redis connection failed"),
       );
 
-      const mockTwilioCreate = vi.fn().mockResolvedValue({
+      mockTwilioCreate.mockResolvedValue({
         sid: "SMxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxx",
         status: "queued",
-      });
-      vi.mocked(require("twilio")).mockReturnValue({
-        messages: {
-          create: mockTwilioCreate,
-        },
       });
 
       const notifier = new TwilioNotifier({
@@ -291,14 +268,9 @@ describe("TwilioNotifier", () => {
     });
 
     it("includes account public key and balance in SMS message", async () => {
-      const mockTwilioCreate = vi.fn().mockResolvedValue({
+      mockTwilioCreate.mockResolvedValue({
         sid: "SMxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxx",
         status: "queued",
-      });
-      vi.mocked(require("twilio")).mockReturnValue({
-        messages: {
-          create: mockTwilioCreate,
-        },
       });
 
       const notifier = new TwilioNotifier({
@@ -323,8 +295,6 @@ describe("TwilioNotifier", () => {
 
   describe("Factory function", () => {
     it("createTwilioNotifier returns a TwilioNotifier instance", () => {
-      const { createTwilioNotifier } = await import("./twilioNotifier");
-
       const notifier = createTwilioNotifier({
         accountSid: "ACxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxx",
         authToken: "auth_token_here",
