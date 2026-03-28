@@ -41,6 +41,7 @@ import {
   initializeLedgerMonitor,
 } from "./workers/ledgerMonitor";
 import { initializeIncidentMonitor } from "./workers/incidentMonitor";
+import { initializeTreasuryRefill } from "./workers/treasuryRefill";
 import { transactionStore } from "./workers/transactionStore";
 import { healthHandler } from "./handlers/health";
 
@@ -320,6 +321,16 @@ if (pagerDutyNotifier.isConfigured() || fcmNotifier.isConfigured()) {
   }
 } else {
   logger.info("PagerDuty incident alerting disabled - routing key not set");
+}
+
+try {
+  const treasuryRefill = initializeTreasuryRefill(config);
+  if (treasuryRefill) {
+    treasuryRefill.start();
+    logger.info("Treasury refill worker started");
+  }
+} catch (error) {
+  logger.error({ ...serializeError(error) }, "Failed to start treasury refill worker");
 }
 
 server = app.listen(PORT, () => {
