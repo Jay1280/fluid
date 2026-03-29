@@ -1,3 +1,15 @@
+# [1.6.0](https://github.com/Stellar-Fluid/fluid/compare/v1.5.0...v1.6.0) (2026-03-29)
+
+
+### Bug Fixes
+
+* **ci:** add fluid-server to workspace and fix gitleaks ([9db8e76](https://github.com/Stellar-Fluid/fluid/commit/9db8e760eccce59a11fad26d2b1b05e92f959751))
+
+
+### Features
+
+* daily email digest for operator activity summary ([1ce4e2e](https://github.com/Stellar-Fluid/fluid/commit/1ce4e2e7223ac72696570abfd3301ee55788ac19))
+
 # [1.5.0](https://github.com/Stellar-Fluid/fluid/compare/v1.4.0...v1.5.0) (2026-03-29)
 
 
